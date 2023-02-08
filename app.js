@@ -16,6 +16,7 @@ app.io = io;
 app.state = {};
 app.state.rumbleAll = false;
 app.state.blackout = false;
+app.state.devices = [];
 
 const logger = pino({
     level: process.env.LOG_LEVEL || 'info',
@@ -34,6 +35,8 @@ app.use((req, res, next) => {
 app.use(pinoHttp);
 app.use(bodyParser.json({ limit: '1mb'}));
 app.use(bodyParser.urlencoded({'extended':'false'}));
+app.use(express.static('frontend'));
+app.use(express.static('public'));
 app.use('/api', indexRoute);
 
 // catch 404 and forward to error handler
@@ -62,8 +65,10 @@ server.listen(WS_PORT);
 
 app.io.on('connection', (socket) => {
     app.state.devices.push({ socketID: socket.id,
+                             deviceID: null, // can we send this on connect?
                              light: false,
-                             rumble: false });
+                             rumble: false,
+                             switch: false });
     logger.info(`[socket.io] device connected socketID: ${socket.id}`);
 
     socket.on('disconnect', () => {
@@ -73,24 +78,17 @@ app.io.on('connection', (socket) => {
     });
 
     socket.on('hasSwitchedOn', (data) => {
-        //io.emit('started-typing', data);
-        logger.info('[socket.io] device has switched on: ', data, socket.id);
+        logger.info('[socket.io] user has device has switched on: ', data, socket.id);
+        const device = app.state.devices.find(x => x.socketID === socket.id);
+        device.switch = true;
     });
 
     socket.on('hasSwitchedOff', (data) => {
-        //    io.emit('stopped-typing', data);
-        logger.info('[socket.io] device has switched off: ', data,  socket.id);
+        logger.info('[socket.io] user has device has switched off: ', data,  socket.id);
+        const device = app.state.devices.find(x => x.socketID === socket.id);
+        device.switch = false;
     });
 
-    socket.on('hasRumbleOn', (data) => {
-        //io.emit('started-typing', data);
-        logger.info('[socket.io] device has rumble on: ', data, socket.id);
-    });
-
-    socket.on('hasRumbleOff', (data) => {
-        //    io.emit('stopped-typing', data);
-        logger.info('[socket.io] device has rumble off: ', data,  socket.id);
-    });
 });
 
 module.exports = app;
