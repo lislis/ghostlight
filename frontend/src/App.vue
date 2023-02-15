@@ -1,6 +1,10 @@
-<script setup>
+<script>
  import { RouterLink, RouterView } from 'vue-router'
  import { Header, HeaderNav, HeaderNavItem } from "agnostic-vue";
+
+ export default {
+     name: 'App',
+ }
 </script>
 
 <template>
@@ -11,7 +15,7 @@
         <template v-slot:headernav>
             <HeaderNav>
                 <HeaderNavItem>
-                    <RouterLink to="/about">About</RouterLink>
+                    <RouterLink to="/radio">Radio</RouterLink>
                 </HeaderNavItem>
             </HeaderNav>
         </template>

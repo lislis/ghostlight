@@ -1,26 +1,19 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 
-import App from './App.vue'
-import router from './router'
-import VueSocketIO from 'vue-3-socket.io'
+import App from './App.vue';
+import router from './router';
 
-import 'agnostic-vue/dist/common.min.css'
+import 'agnostic-vue/dist/common.min.css';
 import "agnostic-vue/dist/index.css";
+import { generateRandomString } from '@/utils';
 
-
-const app = createApp(App)
-
-app.use(new VueSocketIO({
-    debug: true,
-    connection: 'http://localhost:4000',
-   // options: { path: "/my-app/" } //Optional options
-}))
+const app = createApp(App);
 
 app.provide('apiEndpoint', 'http://localhost:3000/api');
-//app.provide('');
+app.provide('deviceID', generateRandomString(4));
 
-app.use(createPinia())
-app.use(router)
+app.use(createPinia());
+app.use(router);
 
 app.mount('#app')
