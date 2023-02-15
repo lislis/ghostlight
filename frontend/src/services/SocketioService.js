@@ -5,7 +5,7 @@ class SocketioService {
     constructor() { }
 
     setupSocketConnection() {
-        this.socket = io("http://localhost:4000", {
+        this.socket = io("http://localhost:3000/ws", {
             transports: ["websocket"]
         })
 

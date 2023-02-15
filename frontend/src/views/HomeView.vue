@@ -13,7 +13,11 @@
             <section id="flashlights" class="mbe36">
                 <div class="flex items-end justify-between">
                     <h2>Flashlights</h2>
-                    <LightControls />
+                    <LightControls @rumbleAll="sendRumbleAll"
+                                   @blackoutAll="sendBlackoutAll"
+                                   @randomLightup="sendRandomLightup"
+                                   :isBlackoutAll="isBlackoutAll"
+                                   :isRumbleAll="isRumbleAll" />
                 </div>
                 <ListLights />
             </section>
@@ -40,8 +44,7 @@
  import LightControls from '@/components/LightControls.vue';
  import ListSensors from '@/components/ListSensors.vue';
  import NeutralList from '@/components/NeutralList.vue';
- import SocketioService from "@/services/SocketioService.js";
- import { generateRandomString } from '@/utils'
+ import { generateRandomString } from '@/utils';
 
  export default {
      name: 'HomeView',
@@ -49,30 +52,81 @@
      data() {
          return {
              socket: null,
+             isBlackoutAll: false,
+             isRumbleAll: false
          };
      },
-     provide() {
-         return {
-             socket: this.socket
+     inject: ['deviceID'],
+     async created() {
+         const rumble = fetch(`${this.apiEndpoint}/state/rumble`)
+             .then(d => d.json());
+         const blackout = fetch(`${this.apiEndpoint}/state/blackout`)
+             .then(d => d.json());
+         const states = await Promise.all([rumble, blackout]);
+         if (states.length === 2) {
+             this.isBlackoutAll = states[1].data.active;
+             this.isRumbleAll = states[0].data.active;
+         } else {
+             console.log('error fetching states');
          }
      },
-     inject: ['deviceID'],
      mounted() {
-         const socket = SocketioService.setupSocketConnection();
+         console.log(this.deviceID);
+         let socket = new WebSocket("ws://127.0.0.1:3000");
+         this.socket = socket;
+         let self = this;
 
-         socket.on("connect", (data) => {
-             socket.emit("register", { id: this.deviceID, type: 'webclient', socketID: socket.id });
+         this.socket.onmessage = function(e){
+             console.log(e)
 
-            // socket.emit("register", { id: generateRandomString(8), type: 'flashlight', socketID: socket.id });
 
-            // socket.emit("register", { id: generateRandomString(8), type: 'sensor', socketID: socket.id });
-         })
+             let data = JSON.parse(e.data);
 
-         socket.on("blackout", (data) => {
-             console.log('received balckoput event')
+             switch(data.subject) {
+                 case 'register-pls':
+                     console.log(data)
 
-             console.log(this.$q)
-         });
+                     let s = { subject: 'registration',
+                               body: {
+                                   ip: data.body.ip,
+                                   deviceID: generateRandomString(6),
+                                   type: 'webclient'
+                               }
+                     };
+                     socket.send(JSON.stringify(s));
+                     break;
+                 case 'rumbleAll':
+                     self.isRumbleAll = data.body.active
+                     break;
+                 case 'blackout':
+                     self.isBlackoutAll = data.body.active
+                     break;
+                 case 'lightup':
+                     console.log(`lighting up this client: ${data.body.client}`)
+                     break;
+                 default:
+                     console.log('Dont know this ditty')
+             }
+         }
      },
+     methods: {
+         sendRumbleAll() {
+             this.genericSend('requestRumbleAll');
+         },
+         sendBlackoutAll() {
+             this.genericSend( 'requestBlackoutAll');
+         },
+         sendRandomLightup() {
+             this.genericSend('requestRandomLightup');
+         },
+         genericSend(subject) {
+             if (this.socket) {
+                 let s = { subject,
+                           body: { //p: this.ip,
+                               type: 'webclient' }};
+                 this.socket.send(JSON.stringify(s));
+             }
+         }
+     }
  }
 </script>

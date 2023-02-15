@@ -1,21 +1,25 @@
-const { Server } = require("socket.io");
+"use strict";
 
-const io = new Server({ /* options */ });
+const serverPort = 3000;
+const express = require("express");
+const http = require("http");
+const WebSocket = require("ws");
 
-io.on("connection", (socket) => {
-    console.log('client, connected', client.adapter.id);
+const app = express();
+const server = http.createServer(app);
+const websocketServer = new WebSocket.Server({ server });
 
-    client.emit('test-event', { data: 'fake' });
-
-    client.on('event', data => {
-        console.log('Event', data.client);
-        client.emit('test-event', 'Right back atcha');
-    });
-
-
-    client.on('disconnect', () => {
-        console.log('Disconnect: ');
-    });
+//when a websocket connection is established
+websocketServer.on("connection", (webSocketClient) => {
+    // send feedback to the incoming connection
+    webSocketClient.send("The time is: ");
+    setInterval(() => {
+        let time = new Date();
+        webSocketClient.send("The time is: " + time.toTimeString());
+    }, 1000);
 });
 
-io.listen(4000);
+//start the web server
+server.listen(3000, () => {
+    console.log("Websocket server started on port 3000");
+});
