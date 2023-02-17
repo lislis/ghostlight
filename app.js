@@ -75,6 +75,7 @@ websocketServer.on("connection", (ws, req) => {
 
         let msg = '' + data; // data is a buffer
         console.log(data);
+        let info;
 
         if (msg.includes('this-is-light')) {
             let deviceID = msg.split('___')[1];
@@ -93,6 +94,23 @@ websocketServer.on("connection", (ws, req) => {
                 .filter(x => x.type === 'webclient')
                 .map(x => x.ws.send(newLightPayload));
 
+        } else  if (msg.includes('this-is-sensor')) {
+                let deviceID = msg.split('___')[1];
+                // we send a version without ws to the webclient
+                // to avoid circular structures for JSON parsing
+                let bodyClient = { ip, deviceID, type: 'sensor',
+                                   threshold: 0, reading: 0 };
+                let body = { ip, deviceID, ws, type: 'sensor',
+                             threshold: 0, reading: 0};
+                logger.info(`[ws] sensor detected ${deviceID}`);
+                app.state.devices.push(body);
+                ws.send('server-says-ACK');
+
+                let newPayload = JSON.stringify({subject: 'new-sensor', body: bodyClient});
+                app.state.devices
+                    .filter(x => x.type === 'webclient')
+                    .map(x => x.ws.send(newPayload));
+
         } else if(msg.includes('this-is-webclient')) {
             let deviceID = msg.split('___')[1];
             let body = { ip, deviceID, ws, type: 'webclient' };
@@ -100,6 +118,25 @@ websocketServer.on("connection", (ws, req) => {
             app.state.devices.push(body);
             ws.send('server-says-ACK');
 
+        } else if(msg.includes('sensor-reading')) {
+            let [ msg, deviceID, reading ] = msg.split('___');
+            info = {
+                ip,
+                deviceID,
+                type: 'reading',
+                value: reading
+            };
+            app.state.devices
+                .filter(x => x.ip === ip
+                        && x.deviceID === deviceID)
+                .forEach(x => {
+                    x.reading = reading;
+                    x.ws.send('server-says-ACK');
+                });
+
+            app.state.devices
+                .filter(x => x.type === 'webclient')
+                .map(x => x.ws.send(JSON.stringify({ subject: 'sensorReading', body: info})));
         } else {
             let response = JSON.parse(data);
 
@@ -113,6 +150,49 @@ websocketServer.on("connection", (ws, req) => {
                 break;
             case 'requestRandomLightup':
                 console.log("[ws] random lights function not yet implemented, please manually select lights")
+                break;
+            case 'changeDevice':
+                info = { all: false,
+                             type: response.body.type,
+                             ip: null,
+                             deviceID: null,
+                             active: null
+                           };
+                app.state.devices
+                    .filter(x => x.ip === response.body.ip
+                            && x.deviceID === response.body.deviceID)
+                    .forEach(x => {
+                        x[response.body.type] = !x[response.body.type];
+                        info.ip = x.ip;
+                        info.deviceID = x.deviceID;
+                        info.active = x[response.body.type];
+                        x.ws.send(`${response.body.type}-${x[response.body.type]}`);
+                    });
+                app.state.devices
+                    .filter(x => x.type === 'webclient')
+                    .map(x => x.ws.send(JSON.stringify({subject: 'change-single-device',
+                                                        body: info})));
+                break;
+            case 'changeSensor':
+                info = { all: false,
+                             type: response.body.type,
+                             ip: null,
+                             deviceID: null,
+                             active: null,
+                             value: null
+                           };
+                app.state.devices
+                    .filter(x => x.ip === response.body.ip
+                            && x.deviceID === response.body.deviceID)
+                    .forEach(x => {
+                        x[response.body.type] = response.body.value;
+                        info.ip = x.ip;
+                        info.deviceID = x.deviceID;
+                        info.value = x[response.body.type].value;
+                        // aka `threshold-64`
+                        x.ws.send(`${response.body.type}-${x[response.body.type]}`);
+                    });
+                ws.send('server-says-ACK');
                 break;
             default:
                 logger.info(`[ws] Did not know message ${response.subject}`);

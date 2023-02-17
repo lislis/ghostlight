@@ -34,6 +34,24 @@ export const useDeviceStore = defineStore('devices', {
                 }
 
             });
+        },
+        toggleSingle(socketObj) {
+            let index = this.devices.findIndex(x => x.ip === socketObj.ip
+                                               && x.deviceID === socktObj.deviceID);
+            if (index === -1) {
+                console.log('error device not found, mismatch server-client data??');
+            } else {
+                this.devices[index][socketObj.type] = socketObj.active;
+            }
+        },
+        updateSingle(obj) {
+            let index = this.devices.findIndex(x => x.ip === obj.ip
+                                               && x.deviceID === obj.deviceID);
+            if (index === -1) {
+                console.log('error device not found, mismatch server-client data??');
+            } else {
+                this.devices[index][obj.type] = obj.value;
+            }
         }
     }
 });

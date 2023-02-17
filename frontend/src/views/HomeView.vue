@@ -46,7 +46,7 @@
  import NeutralList from '@/components/NeutralList.vue';
  import { generateRandomString } from '@/utils';
  import { useDeviceStore } from '@/stores/devices';
- import {parse, stringify, toJSON, fromJSON} from 'flatted';
+ import { computed } from 'vue'
 
 
  export default {
@@ -60,6 +60,11 @@
          };
      },
      inject: ['socketServer', 'apiEndpoint'],
+     provide() {
+         return {
+             socket: computed(() => this.socket)
+         }
+     },
      async created() {
          const rumble = fetch(`${this.apiEndpoint}/state/rumble`)
              .then(d => d.json());
@@ -72,18 +77,17 @@
          } else {
              console.log('error fetching states');
          }
+
      },
      setup() {
          const store = useDeviceStore();
          return { store };
      },
      mounted() {
-         let socket = new WebSocket(this.socketServer);
-         this.socket = socket;
-         let self = this;
+         this.socket =  new WebSocket(this.socketServer);
 
-         socket.onopen = (e) => {
-             socket.send(`this-is-webclient___${generateRandomString(6)}`);
+         this.socket.onopen = (e) => {
+             this.socket.send(`this-is-webclient___${generateRandomString(6)}`);
          }
 
          this.socket.onmessage = (e) => {
@@ -96,14 +100,24 @@
                      console.log(data.body);
                      this.store.addMore([data.body]);
                      break;
+                 case 'new-sensor':
+                     console.log(data.body);
+                     this.store.addMore([data.body]);
+                     break;
                  case 'rumbleAll':
                      this.isRumbleAll = data.body.active
                      break;
                  case 'blackout':
                      this.isBlackoutAll = data.body.active
                      break;
-                 case 'lightup':
-                     console.log(`lighting up this client: ${data.body.client}`)
+                     //case 'lightup':
+                     //    console.log(`lighting up this client: ${data.body.client}`)
+                     //    break;
+                 case 'change-single-device':
+                     this.store.toggleSingle(data.body);
+                     break;
+                 case 'sensorReading':
+                     this.store.updateSingle(data.body);
                      break;
                  default:
                      console.log('Dont know this ditty')

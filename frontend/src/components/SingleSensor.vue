@@ -1,9 +1,6 @@
 <template>
     <div class="flex justify-between items-center p4">
-        <div class="mie24">
-            <span>socket: {{ item.socketID }}</span><br>
-            <span>device: {{ item.deviceID }}</span>
-        </div>
+        <DeviceLabel :device="item" />
         <div class="flex justify-between">
             <div class="" >
                 <span>Resistance value</span><br>
@@ -17,23 +14,27 @@
     </div>
 </template>
 <script>
+ import DeviceLabel from "@/components/DeviceLabel.vue";
+ import { useDeviceStore } from '@/stores/devices';
+
  export default {
      name: 'SingleSensor',
      props: ['item'],
-     inject: ['apiEndpoint', 'socket'],
-     mouted() {
-         this.socket.on('sensorValueChanged', (data) => {
-             if (data.socketID === this.item.socketID) {
-                 this.item.value = data.value;
-             }
-         });
+     inject: ['socket'],
+     components: { DeviceLabel },
+     setup() {
+         const store = useDeviceStore();
+         return { store };
      },
      methods: {
          changeTheshold(ev) {
-             console.log(ev.target.value);
-             this.socket.emit('changeSensorThreshold', { socketID: this.item.socketID,
-                                                         deviceID: this.item.deviceID,
-                                                         value: ev.target.value })
+             //console.log('change', ev.target.value);
+             let body = { ip: this.item.ip,
+                          deviceID: this.item.deviceID,
+                          value: ev.target.value,
+                          type: 'threshold' };
+             this.store.updateSingle(body);
+             this.socket.emit(JSON.stringify({ subject: 'changeSensor', body}));
          }
      }
  }

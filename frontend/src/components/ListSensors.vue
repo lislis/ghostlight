@@ -14,21 +14,14 @@
  export default {
      name: 'ListSensors ',
      components: { SingleSensor },
-     data() {
-         return {
-             //sensors: []
-         }
-     },
      setup() {
          const store = useDeviceStore();
-         //console.log(store)
          return { store };
      },
      inject: ['apiEndpoint'],
      async created() {
          let result = await fetch(`${this.apiEndpoint}/sensors`).then(d => d.json());
          if (result.message === 'success') {
-             //this.sensors = result.data;
              this.store.addMore(result.data);
          } else {
              console.log("Error fetching data");
