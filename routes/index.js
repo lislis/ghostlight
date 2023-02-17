@@ -3,12 +3,12 @@ const router = express.Router();
 
 router.get('/devices', (req, res, next) => {
     return res.json({ message: 'success',
-                      data: req.app.state.devices });
+                      data: req.app.state.devices.filter(x => x.type === 'light') });
 });
 
 router.get('/other', (req, res, next) => {
     return res.json({ message: 'success',
-                      data: req.app.state.other });
+                      data: req.app.state.devices.filter(x => x.type !== 'light' ) });
 });
 
 router.get('/devices/:id', (req, res, next) => {

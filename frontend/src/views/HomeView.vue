@@ -28,7 +28,7 @@
             </section>
             <section id="other" class="mbe36">
                 <h2>Other</h2>
-                <NeutralList label="Other" path="other" />
+                <NeutralList label="Other" path="other" type="webclient" />
 
             </section>
 
@@ -45,6 +45,9 @@
  import ListSensors from '@/components/ListSensors.vue';
  import NeutralList from '@/components/NeutralList.vue';
  import { generateRandomString } from '@/utils';
+ import { useDeviceStore } from '@/stores/devices';
+ import {parse, stringify, toJSON, fromJSON} from 'flatted';
+
 
  export default {
      name: 'HomeView',
@@ -56,7 +59,7 @@
              isRumbleAll: false
          };
      },
-     inject: ['deviceID'],
+     inject: ['socketServer', 'apiEndpoint'],
      async created() {
          const rumble = fetch(`${this.apiEndpoint}/state/rumble`)
              .then(d => d.json());
@@ -70,36 +73,34 @@
              console.log('error fetching states');
          }
      },
+     setup() {
+         const store = useDeviceStore();
+         return { store };
+     },
      mounted() {
-         console.log(this.deviceID);
-         let socket = new WebSocket("ws://127.0.0.1:3000");
+         let socket = new WebSocket(this.socketServer);
          this.socket = socket;
          let self = this;
 
-         this.socket.onmessage = function(e){
-             console.log(e)
+         socket.onopen = (e) => {
+             socket.send(`this-is-webclient___${generateRandomString(6)}`);
+         }
 
+         this.socket.onmessage = (e) => {
+             console.log(e)
 
              let data = JSON.parse(e.data);
 
              switch(data.subject) {
-                 case 'register-pls':
-                     console.log(data)
-
-                     let s = { subject: 'registration',
-                               body: {
-                                   ip: data.body.ip,
-                                   deviceID: generateRandomString(6),
-                                   type: 'webclient'
-                               }
-                     };
-                     socket.send(JSON.stringify(s));
+                 case 'new-light':
+                     console.log(data.body);
+                     this.store.addMore([data.body]);
                      break;
                  case 'rumbleAll':
-                     self.isRumbleAll = data.body.active
+                     this.isRumbleAll = data.body.active
                      break;
                  case 'blackout':
-                     self.isBlackoutAll = data.body.active
+                     this.isBlackoutAll = data.body.active
                      break;
                  case 'lightup':
                      console.log(`lighting up this client: ${data.body.client}`)
@@ -114,7 +115,7 @@
              this.genericSend('requestRumbleAll');
          },
          sendBlackoutAll() {
-             this.genericSend( 'requestBlackoutAll');
+             this.genericSend('requestBlackoutAll');
          },
          sendRandomLightup() {
              this.genericSend('requestRandomLightup');

@@ -1,7 +1,7 @@
 <template>
     <div class="flex justify-between items-center p4">
         <div class="mie24">
-            <span>socket: {{ item.socketID }}</span><br>
+            <span>ip: {{ item.ip }}</span><br>
             <span>device: {{ item.deviceID }}</span>
         </div>
         <div class="flex">
