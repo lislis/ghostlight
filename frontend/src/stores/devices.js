@@ -37,7 +37,7 @@ export const useDeviceStore = defineStore('devices', {
         },
         toggleSingle(socketObj) {
             let index = this.devices.findIndex(x => x.ip === socketObj.ip
-                                               && x.deviceID === socktObj.deviceID);
+                                               && x.deviceID === socketObj.deviceID);
             if (index === -1) {
                 console.log('error device not found, mismatch server-client data??');
             } else {

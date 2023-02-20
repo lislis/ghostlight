@@ -1,41 +1,45 @@
 <template>
-    <main class="flex m24">
-        <div class="mie32 ">
-            <ul>
-                <li><a href="#flashlights">Flashlights</a></li>
-                <li><a href="#sensors">Sensors</a></li>
-                <li><a href="#actuators">Actuators</a></li>
-            </ul>
-        </div>
-        <div class="flex-grow-1 mis32">
-            <h1>Network</h1>
+    <main class="m24">
+        <h1> 👻 🔦  Network</h1>
+        <div class="flex mbs36">
+            <div class="flex-grow-1 mie36">
+                <section id="sensors" class="mbe36 mbs16">
+                    <h2>Sensors</h2>
+                    <hr>
+                    <ListSensors />
 
-            <section id="flashlights" class="mbe36">
-                <div class="flex items-end justify-between">
-                    <h2>Flashlights</h2>
-                    <LightControls @rumbleAll="sendRumbleAll"
-                                   @blackoutAll="sendBlackoutAll"
-                                   @randomLightup="sendRandomLightup"
-                                   :isBlackoutAll="isBlackoutAll"
-                                   :isRumbleAll="isRumbleAll" />
-                </div>
-                <ListLights />
-            </section>
-            <section id="sensors" class="mbe36">
-                <h2>Sensors</h2>
-                <ListSensors />
+                </section>
 
-            </section>
-            <section id="other" class="mbe36">
-                <h2>Other</h2>
-                <NeutralList label="Other" path="other" type="webclient" />
 
-            </section>
+                <section id="actuators"  class="mbe36">
+                    <h2>Actuators</h2>
+                    <hr>
+                </section>
 
-            <section id="actuators" class="mbe36">
-                <h2>Actuators</h2>
 
-            </section>
+                <section id="other" class="mbe36">
+                    <h2>Other</h2>
+                    <hr>
+                    <NeutralList label="Other" path="other" type="webclient" />
+
+                </section>
+
+            </div>
+            <div class="flex-grow-1 mis32">
+                <section id="flashlights" class="">
+                    <div class="flex items-end justify-between">
+                        <h2>Flashlights</h2>
+                        <LightControls @rumbleAll="sendRumbleAll"
+                                       @blackoutAll="sendBlackoutAll"
+                                       @randomLightup="sendRandomLightup"
+                                       :isBlackoutAll="isBlackoutAll"
+                                       :isRumbleAll="isRumbleAll" />
+
+                    </div>
+                    <hr>
+                    <ListLights />
+                </section>
+            </div>
         </div>
     </main>
 </template>
@@ -54,17 +58,11 @@
      components: { ListSensors, ListLights, LightControls, NeutralList },
      data() {
          return {
-             socket: null,
              isBlackoutAll: false,
              isRumbleAll: false
          };
      },
-     inject: ['socketServer', 'apiEndpoint'],
-     provide() {
-         return {
-             socket: computed(() => this.socket)
-         }
-     },
+     inject: ['socketServer', 'apiEndpoint', 'socket'],
      async created() {
          const rumble = fetch(`${this.apiEndpoint}/state/rumble`)
              .then(d => d.json());
@@ -84,44 +82,50 @@
          return { store };
      },
      mounted() {
-         this.socket =  new WebSocket(this.socketServer);
+         //this.socket =  new WebSocket(this.socketServer);
+         console.log(this.socket)
 
          this.socket.onopen = (e) => {
              this.socket.send(`this-is-webclient___${generateRandomString(6)}`);
          }
 
          this.socket.onmessage = (e) => {
-             console.log(e)
+             //console.log(e.data)
+             if (!e.data.includes('server-says')) {
+                 let data = JSON.parse(e.data);
 
-             let data = JSON.parse(e.data);
-
-             switch(data.subject) {
-                 case 'new-light':
-                     console.log(data.body);
-                     this.store.addMore([data.body]);
-                     break;
-                 case 'new-sensor':
-                     console.log(data.body);
-                     this.store.addMore([data.body]);
-                     break;
-                 case 'rumbleAll':
-                     this.isRumbleAll = data.body.active
-                     break;
-                 case 'blackout':
-                     this.isBlackoutAll = data.body.active
-                     break;
-                     //case 'lightup':
-                     //    console.log(`lighting up this client: ${data.body.client}`)
-                     //    break;
-                 case 'change-single-device':
-                     this.store.toggleSingle(data.body);
-                     break;
-                 case 'sensorReading':
-                     this.store.updateSingle(data.body);
-                     break;
-                 default:
-                     console.log('Dont know this ditty')
+                 switch(data.subject) {
+                     case 'new-light':
+                         console.log(data.body);
+                         this.store.addMore([data.body]);
+                         break;
+                     case 'new-sensor':
+                         console.log(data.body);
+                         this.store.addMore([data.body]);
+                         break;
+                     case 'rumbleAll':
+                         this.isRumbleAll = data.body.active
+                         break;
+                     case 'blackout':
+                         this.isBlackoutAll = data.body.active
+                         break;
+                         //case 'lightup':
+                         //    console.log(`lighting up this client: ${data.body.client}`)
+                         //    break;
+                     case 'change-single-device':
+                         this.store.toggleSingle(data.body);
+                         break;
+                     case 'sensorReading':
+                         this.store.updateSingle(data.body);
+                         break;
+                     case 'sensorTriggered':
+                         this.store.updateSingle(data.body)
+                         break;
+                     default:
+                         console.log('Dont know this ditty')
+                 }
              }
+
          }
      },
      methods: {

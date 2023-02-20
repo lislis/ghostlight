@@ -2,13 +2,17 @@
     <div class="flex justify-between items-center p4">
         <DeviceLabel :device="item" />
         <div class="flex justify-between">
-            <div class="" >
-                <span>Resistance value</span><br>
-                <input :value="item.value" type="number" readonly />
+            <div class="mie24">
+                <span v-if="item.trigger">🚨</span><span v-else>🦗</span> Trigger<br>
+                <button class="p4" @click="resetTrigger">reset trigger</button>
+            </div>
+            <div class="mie24">
+                <span>Reading</span><br>
+                <input class="p4" :value="parseInt(item.reading, 10)" type="number" readonly />
             </div>
             <div>
                 <span>Threshold {{ item.threshold }}</span><br>
-                <input :value="item.threshold" type="number" @change="changeTheshold" />
+                <input class="p4" :value="item.threshold" type="number" @change="changeTheshold" />
             </div>
         </div>
     </div>
@@ -27,6 +31,13 @@
          return { store };
      },
      methods: {
+         resetTrigger() {
+             let body = { ip: this.item.ip,
+                          deviceID: this.item.deviceID,
+                          value: false,
+                          type: 'trigger' };
+             this.store.updateSingle(body);
+         },
          changeTheshold(ev) {
              //console.log('change', ev.target.value);
              let body = { ip: this.item.ip,
@@ -34,7 +45,7 @@
                           value: ev.target.value,
                           type: 'threshold' };
              this.store.updateSingle(body);
-             this.socket.emit(JSON.stringify({ subject: 'changeSensor', body}));
+             this.socket.send(JSON.stringify({ subject: 'changeSensor', body}));
          }
      }
  }

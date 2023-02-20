@@ -1,7 +1,7 @@
 <template>
     <div class="flex justify-between items-center p4">
         <DeviceLabel :device="item" />
-        <div class="flex" v-if="socket">
+        <div class="flex">
             <StateToggle label="Light" :stateActive="item.light" @clickedToggle="toggleLight" />
             <StateToggle label="Rumble" :stateActive="item.rumble" @clickedToggle="toggleRumble" />
         </div>
@@ -22,13 +22,14 @@
              let body = { ip: this.item.ip,
                           deviceID: this.item.deviceID,
                           type: 'light' };
-             this.socket.send(JSON.stringify({ subject: 'chnagedevice', body }));
+             console.log(this.socket)
+             this.socket.send(JSON.stringify({ subject: 'changeDevice', body }));
          },
          toggleRumble() {
              let body = { ip: this.item.ip,
                           deviceID: this.item.deviceID,
                           type: 'rumble' };
-             this.socket.send(JSON.stringify({ subject: 'chnagedevice', body }));
+             this.socket.send(JSON.stringify({ subject: 'changeDevice', body }));
          }
      }
  }

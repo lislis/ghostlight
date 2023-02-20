@@ -73,7 +73,7 @@ websocketServer.on("connection", (ws, req) => {
         logger.info(`[ws][incoming] ${data}`);
 
         let msg = '' + data; // data is a buffer
-        console.log(data);
+        //console.log(data);
         let info;
 
         if (msg.includes('this-is-light')) {
@@ -98,9 +98,9 @@ websocketServer.on("connection", (ws, req) => {
                 // we send a version without ws to the webclient
                 // to avoid circular structures for JSON parsing
                 let bodyClient = { ip, deviceID, type: 'sensor',
-                                   threshold: 0, reading: 0 };
+                                   threshold: 0, reading: 0, trigger: false };
                 let body = { ip, deviceID, ws, type: 'sensor',
-                             threshold: 0, reading: 0};
+                             threshold: 0, reading: 0, trigger: false };
                 logger.info(`[ws] sensor detected ${deviceID}`);
                 app.state.devices.push(body);
                 ws.send('server-says-ACK');
@@ -118,7 +118,7 @@ websocketServer.on("connection", (ws, req) => {
             ws.send('server-says-ACK');
 
         } else if(msg.includes('sensor-reading')) {
-            let [ msg, deviceID, reading ] = msg.split('___');
+            let [ topic, deviceID, reading ] = msg.split('___');
             info = {
                 ip,
                 deviceID,
@@ -129,13 +129,26 @@ websocketServer.on("connection", (ws, req) => {
                 .filter(x => x.ip === ip
                         && x.deviceID === deviceID)
                 .forEach(x => {
+                    console.log('reading says', reading)
                     x.reading = reading;
-                    x.ws.send('server-says-ACK');
+                   // x.ws.send('server-says-ACK');
                 });
 
             app.state.devices
                 .filter(x => x.type === 'webclient')
                 .map(x => x.ws.send(JSON.stringify({ subject: 'sensorReading', body: info})));
+        } else if(msg.includes('sensor-triggered')) {
+            let [ topic, deviceID ] = msg.split('___');
+            info = {
+                ip,
+                deviceID,
+                type: 'trigger',
+                value: true
+            };
+            // we're not actually updating the state, just informing the web client
+            app.state.devices
+                .filter(x => x.type === 'webclient')
+                .map(x => x.ws.send(JSON.stringify({ subject: 'sensorTriggered', body: info})));
         } else {
             let response = JSON.parse(data);
 
@@ -175,8 +188,8 @@ websocketServer.on("connection", (ws, req) => {
             case 'changeSensor':
                 info = { all: false,
                              type: response.body.type,
-                             ip: null,
-                             deviceID: null,
+                             ip: response.body.ip,
+                             deviceID: response.body.deviceID,
                              active: null,
                              value: null
                            };
@@ -185,13 +198,14 @@ websocketServer.on("connection", (ws, req) => {
                             && x.deviceID === response.body.deviceID)
                     .forEach(x => {
                         x[response.body.type] = response.body.value;
-                        info.ip = x.ip;
-                        info.deviceID = x.deviceID;
+                        //info.ip = x.ip;
+                        //info.deviceID = x.deviceID;
                         info.value = x[response.body.type].value;
                         // aka `threshold-64`
+                        logger.info(`[ws][outgoing] ${response.body.type}-${x[response.body.type]}`);
                         x.ws.send(`${response.body.type}-${x[response.body.type]}`);
                     });
-                ws.send('server-says-ACK');
+                //ws.send('server-says-ACK');
                 break;
             default:
                 logger.info(`[ws] Did not know message ${response.subject}`);

@@ -13,8 +13,13 @@ import { generateRandomString } from '@/utils';
 const app = createApp(App);
 
 app.provide('apiEndpoint', 'http://localhost:3000/api');
-app.provide('socketServer', "ws://127.0.0.1:3000");
+const socketAddress = "ws://127.0.0.1:3000";
+
+app.provide('socketServer', socketAddress);
 //app.provide('deviceID', generateRandomString(4));
+
+const socket = new WebSocket(socketAddress);
+app.provide('socket', socket);
 
 app.use(createPinia());
 app.use(router);

@@ -3,7 +3,7 @@
         <li v-for="item in store.byType(type)">
             <div class="flex">
             <DeviceLabel :device="item" />
-            {{ item.type }}
+            <Tag shape="round" is-uppercase >{{ item.type }}</Tag>
             </div>
         </li>
     </ul>
@@ -12,11 +12,12 @@
 <script>
  import DeviceLabel from "@/components/DeviceLabel.vue"
  import { useDeviceStore } from '@/stores/devices';
+ import { Tag } from "agnostic-vue";
 
  export default {
      name: 'NeutralList',
      props: ['label', 'path', 'type'],
-     components: { DeviceLabel },
+     components: { DeviceLabel, Tag },
      setup() {
          const store = useDeviceStore();
          return { store };
