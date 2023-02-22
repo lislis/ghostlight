@@ -14,7 +14,6 @@
                 <section id="actuators"  class="mbe36">
                     <h2>Actuators</h2>
                     <hr>
-                    <ListActuators />
                 </section>
 
 
@@ -48,7 +47,6 @@
  import ListLights from '@/components/ListLights.vue'
  import LightControls from '@/components/LightControls.vue';
  import ListSensors from '@/components/ListSensors.vue';
- import ListActuators from '@/components/ListActuators.vue';
  import NeutralList from '@/components/NeutralList.vue';
  import { generateRandomString } from '@/utils';
  import { useDeviceStore } from '@/stores/devices';
@@ -57,8 +55,7 @@
 
  export default {
      name: 'HomeView',
-     components: { ListSensors, ListLights, LightControls,
-                   NeutralList, ListActuators },
+     components: { ListSensors, ListLights, LightControls, NeutralList },
      data() {
          return {
              isBlackoutAll: false,
@@ -103,10 +100,6 @@
                          this.store.addMore([data.body]);
                          break;
                      case 'new-sensor':
-                         console.log(data.body);
-                         this.store.addMore([data.body]);
-                         break;
-                     case 'new-actuator':
                          console.log(data.body);
                          this.store.addMore([data.body]);
                          break;
