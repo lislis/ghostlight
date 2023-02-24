@@ -68,13 +68,14 @@ websocketServer.on("connection", (ws, req) => {
     ws.on('error', logger.error);
 
     const ip = req.socket.remoteAddress;
+    let info;
+
 
     ws.on('message', (data) => {
         logger.info(`[ws][incoming] ${data}`);
 
         let msg = '' + data; // data is a buffer
         //console.log(data);
-        let info;
 
         if (msg.includes('this-is-light')) {
             let deviceID = msg.split('___')[1];
@@ -98,9 +99,11 @@ websocketServer.on("connection", (ws, req) => {
                 // we send a version without ws to the webclient
                 // to avoid circular structures for JSON parsing
                 let bodyClient = { ip, deviceID, type: 'sensor',
-                                   threshold: 0, reading: 0, trigger: false };
+                                   threshold: 0, reading: 0, trigger: false,
+                                   active: false, interval: 4000 };
                 let body = { ip, deviceID, ws, type: 'sensor',
-                             threshold: 0, reading: 0, trigger: false };
+                             threshold: 0, reading: 0, trigger: false,
+                             active: false, interval: 4000  };
                 logger.info(`[ws] sensor detected ${deviceID}`);
                 app.state.devices.push(body);
                 ws.send('server-says-ACK');
@@ -108,7 +111,26 @@ websocketServer.on("connection", (ws, req) => {
                 let newPayload = JSON.stringify({subject: 'new-sensor', body: bodyClient});
                 app.state.devices
                     .filter(x => x.type === 'webclient')
-                    .map(x => x.ws.send(newPayload));
+                .map(x => x.ws.send(newPayload));
+        } else if (msg.includes('this-is-windmachine')) {
+            let deviceID = 'windmaschine';
+            // we send a version without ws to the webclient
+            // to avoid circular structures for JSON parsing
+            let channels = [0, 0, 0,  0, 0, 0];
+            let bodyClient = { ip, deviceID,
+                               type: 'dmx-windmachine',
+                               channels};
+            let body = { ip, deviceID, ws,
+                         type: 'dmx-windmachine',
+                         channels };
+            logger.info(`[ws] windmachine detected ${deviceID}`);
+            app.state.devices.push(body);
+            ws.send('server-says-ACK');
+
+            let newPayload = JSON.stringify({subject: 'new-actuator', body: bodyClient});
+            app.state.devices
+                .filter(x => x.type === 'webclient')
+                .map(x => x.ws.send(newPayload));
 
         } else if(msg.includes('this-is-webclient')) {
             let deviceID = msg.split('___')[1];
@@ -125,6 +147,24 @@ websocketServer.on("connection", (ws, req) => {
                 type: 'reading',
                 value: reading
             };
+
+            if (app.state.devices.filter(x => x.ip == ip).length <= 0) {
+                let bodyClient = { ip, deviceID, type: 'sensor',
+                                   threshold: 0, reading: 0, trigger: false,
+                                   active: false, interval: 4000 };
+                let body = { ip, deviceID, ws, type: 'sensor',
+                             threshold: 0, reading: 0, trigger: false,
+                             active: false, interval: 4000  };
+                logger.info(`[ws] sensor detected ${deviceID}`);
+                app.state.devices.push(body);
+                ws.send('server-says-ACK');
+
+                let newPayload = JSON.stringify({subject: 'new-sensor', body: bodyClient});
+                app.state.devices
+                    .filter(x => x.type === 'webclient')
+                    .map(x => x.ws.send(newPayload));
+            }
+
             app.state.devices
                 .filter(x => x.ip === ip
                         && x.deviceID === deviceID)
@@ -206,6 +246,27 @@ websocketServer.on("connection", (ws, req) => {
                         x.ws.send(`${response.body.type}-${x[response.body.type]}`);
                     });
                 //ws.send('server-says-ACK');
+                break;
+            case 'sendDmxData':
+                let channel = response.body.type;
+                let strength = response.body.value;
+                info = {
+                    channel,
+                    value: strength,
+                    type: response.body.type,
+                    ip: response.body.ip,
+                    deviceID: response.body.deviceID,
+                };
+                app.state.devices
+                    .filter(x => x.type === 'dmx-windmachine')
+                    .map(x => {
+                        x.channels[channel] = strength;
+                        x.ws.send(`${channel}-${strength}`);
+                    });
+                app.state.devices
+                    .filter(x => x.type === 'webclient')
+                    .map(x => x.ws.send(JSON.stringify({subject: 'dmx-updated',
+                                                        body: info})));
                 break;
             default:
                 logger.info(`[ws] Did not know message ${response.subject}`);

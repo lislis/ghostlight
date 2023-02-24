@@ -116,9 +116,6 @@
                      case 'blackout':
                          this.isBlackoutAll = data.body.active
                          break;
-                         //case 'lightup':
-                         //    console.log(`lighting up this client: ${data.body.client}`)
-                         //    break;
                      case 'change-single-device':
                          this.store.toggleSingle(data.body);
                          break;
@@ -127,6 +124,9 @@
                          break;
                      case 'sensorTriggered':
                          this.store.updateSingle(data.body)
+                         break;
+                     case 'dmx-updated':
+                         this.store.updateDMX(data.body);
                          break;
                      default:
                          console.log('Dont know this ditty')

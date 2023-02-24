@@ -1,26 +1,30 @@
 <template>
     <div class="flex justify-between items-center p4">
         <DeviceLabel :device="item" />
-        <div class="flex justify-between">
+        <div class="flex justify-start">
             <StateToggle label="Active" :stateActive="item.active" @clickedToggle="toggleActive" />
-
-            <div>
+            
+            <div class="mie24">
+                <h1 v-if="item.trigger">🚨</h1><h1 v-else>🦗</h1>
+                <button class="p4" v-if="item.trigger" @click="resetTrigger">reset trigger</button>
+            </div>
+            
+            <div class="mie24">
+                <span>Reading</span><br>
+                <span>{{ item.reading }}</span>
+            </div>
+            <div  class="mie24">
+                <span>Threshold {{ item.threshold }}</span><br>
+                <input class="p4" :value="item.threshold" type="number" @change="changeThreshold" />
+            </div>
+            
+            <div  class="mie24">
                 <span>Interval {{ item.interval }}</span><br>
                 <input class="p4" :value="item.interval" type="number" @change="changeInterval" />
             </div>
             <div class="mie24">
-                <span>Reading</span><br>
-                <input class="p4" :value="parseInt(item.reading, 10)" type="number" readonly />
+                 <button @click="flashy">Disco</button>
             </div>
-            <div>
-                <span>Threshold {{ item.threshold }}</span><br>
-                <input class="p4" :value="item.threshold" type="number" @change="changeThreshold" />
-            </div>
-            <div class="mie24">
-                <span v-if="item.trigger">🚨</span><span v-else>🦗</span> Trigger<br>
-                <button class="p4" v-if="item.trigger" @click="resetTrigger">reset trigger</button>
-            </div>
-
         </div>
     </div>
 </template>
@@ -44,6 +48,7 @@
              this.store.updateSingle(body);
          },
          changeThreshold(ev) {
+               ev.preventDefault();
              let body = this.createBody('threshold', ev.target.value);
 
              this.store.updateSingle(body);
@@ -53,6 +58,10 @@
              let body = this.createBody('interval', ev.target.value);
              this.store.updateSingle(body);
              this.socket.send(JSON.stringify({ subject: 'changeSensor', body}));
+         },
+         flashy(ev) {
+             this.toggleActive();
+             setTimeout(this.toggleActive, 500);
          },
          toggleActive() {
              let mew;

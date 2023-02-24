@@ -12,8 +12,11 @@ import { generateRandomString } from '@/utils';
 
 const app = createApp(App);
 
-app.provide('apiEndpoint', 'http://localhost:3000/api');
-const socketAddress = "ws://127.0.0.1:3000";
+//app.provide('apiEndpoint', 'http://localhost:3000/api');
+//const socketAddress = "ws://127.0.0.1:3000";
+
+app.provide('apiEndpoint', 'http://10.3.141.1:3000/api');
+const socketAddress = "ws://10.3.141.1:3000";
 
 app.provide('socketServer', socketAddress);
 //app.provide('deviceID', generateRandomString(4));
