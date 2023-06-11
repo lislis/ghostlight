@@ -1,10 +1,12 @@
 <template>
+
     <ul v-if="store.byType('light').length" class="mbs32">
         <li v-for="light in store.byType('light')">
             <SingleLight :item="light" />
         </li>
     </ul>
     <div v-else>No lights yet</div>
+
 </template>
 
 <script>
@@ -27,6 +29,7 @@
          } else {
              console.log("Error fetching data");
          }
-     }
+     },
+
  }
 </script>

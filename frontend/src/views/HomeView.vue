@@ -152,7 +152,8 @@
                                type: 'webclient' }};
                  this.socket.send(JSON.stringify(s));
              }
-         }
+         },
+
      }
  }
 </script>

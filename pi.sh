@@ -6,4 +6,3 @@ cd frontend/dist/
 pm2 start app.py --interpreter python3
 
 echo "All done 👻"
-y
