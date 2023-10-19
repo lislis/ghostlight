@@ -1,16 +1,17 @@
 <template>
     <main class="m24">
         <h1> 👻 🔦  Network</h1>
-        <div class="flex mbs36">
-            <div class="flex-grow-1 mie36">
+        <div class="mbs36">
+            <div>
                 <section id="sensors" class="mbe36 mbs16">
                     <h2>Sensors</h2>
                     <hr>
                     <ListSensors />
-
                 </section>
-
-
+            </div>
+        </div>
+        <div class="flex">
+            <div class="flex-grow-1 mie36">
                 <section id="actuators"  class="mbe36">
                     <h2>Actuators</h2>
                     <hr>
@@ -26,7 +27,7 @@
                 </section>
 
             </div>
-            <div class="flex-grow-1 mis32">
+            <div class="mis32">
                 <section id="flashlights" class="">
                     <div class="flex items-end justify-between">
                         <h2>Flashlights</h2>

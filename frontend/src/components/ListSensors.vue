@@ -1,17 +1,32 @@
 <template>
     <div>
         <div class="flex justify-between mbe16 mbs16">
-            <button @click="allLight">Toggle color lights</button>
-            <label>Threshold all<input type="number"  @change="threshAll" /></label>
-            <label>Interval all<input type="number"  @change="interAll" /></label>
+            <button @click="allLight" class="pie8 pis8  pbs2">Toggle all sensors</button>
+            <label>Threshold all <input type="number"  @change="threshAll" /></label>
+            <label>Interval all <input type="number"  @change="interAll" /></label>
         </div>
         <hr />
         <ul v-if="store.byType('sensor').length">
+            <li>
+                <SingleSensor :item="dummy" />
+            </li>
+
             <li v-for="sensor in store.byType('sensor')">
                 <SingleSensor :item="sensor" />
             </li>
         </ul>
         <div v-else>No sensors yet</div>
+
+        <div class="flex mbs36">
+            <textarea></textarea>
+            <ul class="mis16">
+                <li>Hallway: interval 1000.0, 5, 6, 7 successes</li>
+                <li>Chapel: interval 5000.0, load up each one</li>
+                <li>Kitchen: interval 0.0, wave-y motion</li>
+                <li>Bathroom: interval 2000.0, high! thresholds for the inactive ones</li>
+            </ul>
+
+        </div>
     </div>
 </template>
 
@@ -22,6 +37,18 @@
  export default {
      name: 'ListSensors ',
      components: { SingleSensor },
+     data() {
+         return {
+             dummy: {
+                 ip: "122.122.122.0",
+                 deviceID: "sensorRED",
+                 active: true,
+                 reading: 200.0,
+                 threshold: 400.0,
+                 interval: 1000.0
+             }
+         }
+     },
      setup() {
          const store = useDeviceStore();
          return { store };

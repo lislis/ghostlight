@@ -3,7 +3,7 @@
         <div>
             <span>{{ label }}</span>
         </div>
-        <button type="button" @click="$emit('clickedBtn')">
+        <button class="pie8 pis8 pbs2" type="button" @click="$emit('clickedBtn')">
             <span>Do it!</span>
         </button>
     </div>
