@@ -7,10 +7,6 @@
         </div>
         <hr />
         <ul v-if="store.byType('sensor').length">
-            <li>
-                <SingleSensor :item="dummy" />
-            </li>
-
             <li v-for="sensor in store.byType('sensor')">
                 <SingleSensor :item="sensor" />
             </li>

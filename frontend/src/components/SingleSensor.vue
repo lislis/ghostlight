@@ -1,11 +1,11 @@
 <template>
-    <div class="flex justify-between items-center p4">
+    <div class="flex justify-between items-end p4">
         <DeviceLabel :device="item" />
         <div class="flex flex-grow-1 justify-between items-end">
-               <div class="mie24">
-                <button class="p4" v-if="item.trigger" @click="resetTrigger">reset trigger</button>
-                <h1 v-if="item.trigger">🚨</h1><h1 v-else>🦗</h1>
-            </div>
+            <div class="mie24 flex items-center">
+                <h1 v-if="item.trigger" class="mie6">🚨</h1><h1 v-else>🦗</h1>
+                   <button class="pis8 pie8 pbs2" v-if="item.trigger" @click="resetTrigger">Reset</button>
+               </div>
 
             <StateToggle label="Active" :stateActive="item.active" @clickedToggle="toggleActive" />
 
@@ -14,13 +14,15 @@
                 <span>{{ item.reading }}</span>
             </div>
             <div  class="mie24">
-                <span>Threshold {{ item.threshold }}</span><br>
-                <input class="p4" :value="item.threshold" type="number" @change="changeThreshold" />
+                <span>Threshold</span><br>
+                <span class="mie8">{{item.threshold}}</span>
+                <input class="p4" type="number" @change="changeThreshold" />
             </div>
 
             <div  class="mie24">
-                <span>Interval {{ item.interval }}</span><br>
-                <input class="p4" :value="item.interval" type="number" @change="changeInterval" />
+                <span>Interval</span><br>
+                <span class="mie8">{{item.interval}}</span>
+                <input class="p4" type="number" @change="changeInterval" />
             </div>
 
             <div class="mie24">
