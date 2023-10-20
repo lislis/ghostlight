@@ -26,7 +26,8 @@
             </div>
 
             <div class="mie24">
-                <button @click="flashy" class="pie8 pis8 pbs4">Disco</button>
+                <button v-if="!disco" @click="flashy" class="pie8 pis8 pbs4">Disco</button>
+                <button v-else @click="noflashy" class="pie8 pis8 pbs4">Stop</button>
             </div>
         </div>
     </div>
@@ -44,6 +45,12 @@
      setup() {
          const store = useDeviceStore();
          return { store };
+     },
+     data() {
+         return {
+             disco: false,
+             intervalId: null
+         }
      },
      methods: {
          resetTrigger() {
@@ -63,8 +70,14 @@
              this.socket.send(JSON.stringify({ subject: 'changeSensor', body}));
          },
          flashy(ev) {
+             this.disco = true;
              this.toggleActive();
-             setTimeout(this.toggleActive, 500);
+             this.intervalId = setInterval(this.toggleActive, 1000);
+         },
+         noflashy(ev) {
+             this.disco = false;
+             this.toggleActive();
+             clearInterval(this.intervalId);
          },
          toggleActive() {
              let mew;
