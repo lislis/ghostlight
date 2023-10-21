@@ -16,10 +16,10 @@
         <div class="flex mbs36">
             <textarea></textarea>
             <ul class="mis16">
-                <li>Hallway: interval 1000.0, 5, 6, 7 successes</li>
+                <li>Hallway: interval 1000.0, 3, 4, 5 times</li>
                 <li>Chapel: interval 5000.0, load up each one</li>
-                <li>Kitchen: interval 0.0, wave-y motion</li>
-                <li>Bathroom: interval 2000.0, high! thresholds for the inactive ones</li>
+                <li>Kitchen: interval 0.0, wave-y motion, 3 times?</li>
+                <li>Bathroom: interval 2000.0, high! thresholds for the inactive ones. Find the right one 4 times</li>
             </ul>
 
         </div>
